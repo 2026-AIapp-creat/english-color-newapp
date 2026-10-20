@@ -1,0 +1,267 @@
+import React, { useState, useEffect } from 'react';
+
+// アプリ全体で使う色（パレット）の定義
+const PALETTE_COLORS = [
+  { name: "RED", hex: "#EF4444", katakana: "レッド" },
+  { name: "BLUE", hex: "#3B82F6", katakana: "ブルー" },
+  { name: "YELLOW", hex: "#EAB308", katakana: "イエロー" },
+  { name: "GREEN", hex: "#22C55E", katakana: "グリーン" },
+  { name: "ORANGE", hex: "#F97316", katakana: "オレンジ" },
+  { name: "PURPLE", hex: "#A855F7", katakana: "パープル" },
+  { name: "PINK", hex: "#EC4899", katakana: "ピンク" },
+  { name: "BROWN", hex: "#8B4513", katakana: "ブラウン" }
+];
+
+// SVGアイコンの描画関数群
+const Icons = {
+  TShirt: ({ fill, className }) => (
+    <svg viewBox="0 0 24 24" fill={fill} stroke={fill === "transparent" ? "#9CA3AF" : "none"} strokeWidth="1.5" className={className}>
+      <path d="M20.66 7.5l-4.5-4.5a1 1 0 00-.7-.29H8.54a1 1 0 00-.7.29l-4.5 4.5A1 1 0 003 8.2V10a1 1 0 001 1h2v9a1 1 0 001 1h10a1 1 0 001-1v-9h2a1 1 0 001-1V8.2a1 1 0 00-.34-.7z" />
+    </svg>
+  ),
+  Apple: ({ fill, className }) => (
+    <svg viewBox="0 0 24 24" fill={fill} stroke={fill === "transparent" ? "#9CA3AF" : "none"} strokeWidth="1.5" className={className}>
+      <path d="M12 20.5c-4.5 0-7-4-7-8 0-4.5 3-7 6-7 .5 0 1 .1 1.5.3A6 6 0 0116.5 5c3 0 6 2.5 6 7 0 4-2.5 8-7 8a7 7 0 01-3.5-1A7 7 0 0112 20.5z" />
+      <path fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" d="M12 5.5V2" />
+      <path fill="#22C55E" d="M12 2C14 2 15 3 15 4S13 5 12 5 10 3 12 2z" />
+    </svg>
+  ),
+  Car: ({ fill, className }) => (
+    <svg viewBox="0 0 24 24" fill={fill} stroke={fill === "transparent" ? "#9CA3AF" : "none"} strokeWidth="1.5" className={className}>
+      <path d="M3 13h1v-2a3 3 0 013-3h10a3 3 0 013 3v2h1a2 2 0 012 2v2a1 1 0 01-1 1h-1a3 3 0 01-6 0h-6a3 3 0 01-6 0H2a1 1 0 01-1-1v-2a2 2 0 012-2z" />
+      <circle cx="6" cy="18" r="2" fill="#374151" />
+      <circle cx="18" cy="18" r="2" fill="#374151" />
+    </svg>
+  ),
+  Heart: ({ fill, className }) => (
+    <svg viewBox="0 0 24 24" fill={fill} stroke={fill === "transparent" ? "#9CA3AF" : "none"} strokeWidth="1.5" className={className}>
+      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+    </svg>
+  ),
+  Leaf: ({ fill, className }) => (
+    <svg viewBox="0 0 24 24" fill={fill} stroke={fill === "transparent" ? "#9CA3AF" : "none"} strokeWidth="1.5" className={className}>
+      <path d="M11 20A7 7 0 014 13C4 8 8 2 12 2c4 0 8 6 8 11a7 7 0 01-7 7v4" />
+      <path d="M12 2v18M12 10l-4-4M12 14l4-4" stroke="#fff" strokeWidth="1" fill="none" />
+    </svg>
+  ),
+  Star: ({ fill, className }) => (
+    <svg viewBox="0 0 24 24" fill={fill} stroke={fill === "transparent" ? "#9CA3AF" : "none"} strokeWidth="1.5" className={className} strokeLinejoin="round" strokeLinecap="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  ),
+  House: ({ fill, className }) => (
+    <svg viewBox="0 0 24 24" fill={fill} stroke={fill === "transparent" ? "#9CA3AF" : "none"} strokeWidth="1.5" className={className} strokeLinejoin="round" strokeLinecap="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline fill="none" stroke={fill === "transparent" ? "#9CA3AF" : "#fff"} strokeWidth="1" points="9 22 9 12 15 12 15 22" />
+    </svg>
+  ),
+  Cup: ({ fill, className }) => (
+    <svg viewBox="0 0 24 24" fill={fill} stroke={fill === "transparent" ? "#9CA3AF" : "none"} strokeWidth="1.5" className={className} strokeLinejoin="round" strokeLinecap="round">
+      <path d="M5 4h10v12a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V4z" />
+      <path fill="none" stroke={fill === "transparent" ? "#9CA3AF" : fill} strokeWidth="3" d="M15 6h2a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2" />
+    </svg>
+  ),
+  Sun: ({ fill, className }) => (
+    <svg viewBox="0 0 24 24" fill={fill} stroke={fill === "transparent" ? "#9CA3AF" : "none"} strokeWidth="1.5" className={className} strokeLinejoin="round" strokeLinecap="round">
+      <circle cx="12" cy="12" r="5" />
+      <path fill="none" stroke={fill === "transparent" ? "#9CA3AF" : fill} strokeWidth="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+    </svg>
+  ),
+  Flower: ({ fill, className }) => (
+    <svg viewBox="0 0 24 24" fill={fill} stroke={fill === "transparent" ? "#9CA3AF" : "none"} strokeWidth="1.5" className={className} strokeLinejoin="round" strokeLinecap="round">
+      <circle cx="12" cy="12" r="3" fill={fill === "transparent" ? "transparent" : "#EAB308"} />
+      <path d="M12 2a3 3 0 0 0-3 3v2a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+      <path d="M12 22a3 3 0 0 0 3-3v-2a3 3 0 0 0-6 0v2a3 3 0 0 0 3 3z" />
+      <path d="M2 12a3 3 0 0 0 3 3h2a3 3 0 0 0 0-6H5a3 3 0 0 0-3 3z" />
+      <path d="M22 12a3 3 0 0 0-3-3h-2a3 3 0 0 0 0 6h2a3 3 0 0 0 3-3z" />
+    </svg>
+  )
+};
+
+// 各ステージ（問題）のデータ (20問に増量)
+const STAGES = [
+  { id: 1, itemName: "T-shirt", targetColor: "YELLOW", targetHex: "#EAB308", Icon: Icons.TShirt },
+  { id: 2, itemName: "Apple", targetColor: "RED", targetHex: "#EF4444", Icon: Icons.Apple },
+  { id: 3, itemName: "Car", targetColor: "BLUE", targetHex: "#3B82F6", Icon: Icons.Car },
+  { id: 4, itemName: "Leaf", targetColor: "GREEN", targetHex: "#22C55E", Icon: Icons.Leaf },
+  { id: 5, itemName: "Heart", targetColor: "PINK", targetHex: "#EC4899", Icon: Icons.Heart },
+  { id: 6, itemName: "Star", targetColor: "YELLOW", targetHex: "#EAB308", Icon: Icons.Star },
+  { id: 7, itemName: "House", targetColor: "BROWN", targetHex: "#8B4513", Icon: Icons.House },
+  { id: 8, itemName: "Cup", targetColor: "PURPLE", targetHex: "#A855F7", Icon: Icons.Cup },
+  { id: 9, itemName: "Sun", targetColor: "ORANGE", targetHex: "#F97316", Icon: Icons.Sun },
+  { id: 10, itemName: "Flower", targetColor: "RED", targetHex: "#EF4444", Icon: Icons.Flower },
+  { id: 11, itemName: "T-shirt", targetColor: "BLUE", targetHex: "#3B82F6", Icon: Icons.TShirt },
+  { id: 12, itemName: "Apple", targetColor: "GREEN", targetHex: "#22C55E", Icon: Icons.Apple },
+  { id: 13, itemName: "Car", targetColor: "ORANGE", targetHex: "#F97316", Icon: Icons.Car },
+  { id: 14, itemName: "Leaf", targetColor: "BROWN", targetHex: "#8B4513", Icon: Icons.Leaf },
+  { id: 15, itemName: "Heart", targetColor: "RED", targetHex: "#EF4444", Icon: Icons.Heart },
+  { id: 16, itemName: "Star", targetColor: "PURPLE", targetHex: "#A855F7", Icon: Icons.Star },
+  { id: 17, itemName: "House", targetColor: "PINK", targetHex: "#EC4899", Icon: Icons.House },
+  { id: 18, itemName: "Cup", targetColor: "YELLOW", targetHex: "#EAB308", Icon: Icons.Cup },
+  { id: 19, itemName: "Sun", targetColor: "BLUE", targetHex: "#3B82F6", Icon: Icons.Sun },
+  { id: 20, itemName: "Flower", targetColor: "PINK", targetHex: "#EC4899", Icon: Icons.Flower }
+];
+
+export default function ColorCustomizerApp() {
+  const [currentStageIndex, setCurrentStageIndex] = useState(0);
+  const [filledColor, setFilledColor] = useState("transparent");
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [shakeColorName, setShakeColorName] = useState(null); // 不正解時に震わせる色
+  const [isGameClear, setIsGameClear] = useState(false);
+
+  const currentStage = STAGES[currentStageIndex];
+
+  // 色のボタンが押された時の処理
+  const handleColorSelect = (color) => {
+    if (isCorrect || isGameClear) return; // すでに正解している間は入力を受け付けない
+
+    if (color.name === currentStage.targetColor) {
+      // 正解の処理
+      setFilledColor(color.hex);
+      setIsCorrect(true);
+      
+      // 2.5秒後に次のステージへ
+      setTimeout(() => {
+        if (currentStageIndex + 1 < STAGES.length) {
+          setCurrentStageIndex(prev => prev + 1);
+          setFilledColor("transparent");
+          setIsCorrect(false);
+        } else {
+          setIsGameClear(true);
+        }
+      }, 2500);
+
+    } else {
+      // 不正解の処理（音を鳴らさず、視覚的に「違うよ」と伝える）
+      setShakeColorName(color.name);
+      setTimeout(() => {
+        setShakeColorName(null);
+      }, 500); // 0.5秒後にアニメーションをリセット
+    }
+  };
+
+  const restartGame = () => {
+    setCurrentStageIndex(0);
+    setFilledColor("transparent");
+    setIsCorrect(false);
+    setIsGameClear(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-8 px-4 font-sans selection:bg-none">
+      
+      {/* グローバルに適用するカスタムアニメーション */}
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-8px); }
+          50% { transform: translateX(8px); }
+          75% { transform: translateX(-8px); }
+        }
+        .animate-shake {
+          animation: shake 0.4s ease-in-out;
+        }
+        @keyframes pop {
+          0% { transform: scale(0.5); opacity: 0; }
+          60% { transform: scale(1.2); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+          animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+      `}</style>
+
+      {/* ヘッダーエリア */}
+      <div className="w-full max-w-xl flex justify-between items-center mb-6 px-4">
+        <h1 className="text-xl font-bold text-slate-800 tracking-wider">Color Customizer</h1>
+        <div className="text-slate-500 font-medium bg-slate-200 px-4 py-1 rounded-full">
+          {currentStageIndex + 1} / {STAGES.length}
+        </div>
+      </div>
+
+      {isGameClear ? (
+        // ゲームクリア画面
+        <div className="flex flex-col items-center justify-center flex-1 animate-pop">
+          <div className="text-6xl mb-6">🎉</div>
+          <h2 className="text-4xl font-extrabold text-slate-800 mb-8">ALL CLEAR!</h2>
+          <button 
+            onClick={restartGame}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold py-4 px-10 rounded-2xl shadow-lg transition-transform active:scale-95"
+          >
+            PLAY AGAIN
+          </button>
+        </div>
+      ) : (
+        // プレイ画面
+        <div className="w-full max-w-xl flex flex-col items-center">
+          
+          {/* 問題文（プロンプト） */}
+          <div className="bg-white px-6 py-4 rounded-3xl shadow-sm border border-slate-100 mb-8 text-center animate-pop">
+            <p className="text-2xl text-slate-600 font-medium">
+              Make it <span className="font-extrabold text-3xl mx-2" style={{ color: currentStage.targetHex }}>{currentStage.targetColor}</span>!
+            </p>
+          </div>
+
+          {/* アイテム表示エリア (キャンバス) */}
+          <div className="relative w-64 h-64 md:w-80 md:h-80 bg-white rounded-[3rem] shadow-xl flex items-center justify-center mb-10 border-4 border-slate-100 p-8">
+            {/* アイテム本体 */}
+            <div className={isCorrect ? "animate-pop" : "animate-float"}>
+              <currentStage.Icon fill={filledColor} className="w-full h-full drop-shadow-md transition-colors duration-300" />
+            </div>
+
+            {/* 正解時の視覚フィードバック（キラキラエフェクト） */}
+            {isCorrect && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="absolute w-full h-full animate-ping opacity-20 rounded-full" style={{ backgroundColor: currentStage.targetHex }}></div>
+                <div className="text-5xl font-black text-white drop-shadow-lg z-10 animate-pop rotate-[-10deg] absolute bottom-4 right-4 bg-slate-800 px-4 py-2 rounded-2xl">
+                  GOOD!
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* カラーパレット (選択肢) */}
+          <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-4 px-2">
+            {PALETTE_COLORS.map((color) => {
+              const isShaking = shakeColorName === color.name;
+              
+              return (
+                <button
+                  key={color.name}
+                  onClick={() => handleColorSelect(color)}
+                  disabled={isCorrect}
+                  className={`
+                    relative overflow-hidden group rounded-2xl p-4 flex flex-col items-center justify-center
+                    transition-all duration-200 shadow-md active:scale-95
+                    ${isShaking ? 'animate-shake ring-4 ring-red-400' : 'hover:shadow-lg hover:-translate-y-1'}
+                    ${isCorrect ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                  `}
+                  style={{ backgroundColor: color.hex }}
+                >
+                  {/* ボタンの立体感を出すためのハイライト */}
+                  <div className="absolute top-0 left-0 w-full h-1/2 bg-white opacity-20 rounded-t-2xl"></div>
+                  
+                  {/* カタカナと英単語 (白文字でドロップシャドウをつけ視認性を高める) */}
+                  <div className="relative z-10 flex flex-col items-center drop-shadow-md">
+                    <span className="text-white text-xs font-bold opacity-90 mb-0.5">{color.katakana}</span>
+                    <span className="text-white font-extrabold text-xl tracking-wider">
+                      {color.name}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+        </div>
+      )}
+    </div>
+  );
+}
